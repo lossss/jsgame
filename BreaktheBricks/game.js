@@ -125,6 +125,20 @@ class Paddle {
         return this.y
     }
 }
+class Block {
+    constructor(img, x, y ) {
+        this.img = imgFromPath(img)
+        this.x = x
+        this.y = y
+        this.alive = true
+    }
+    kill(){
+      this.alive = false
+    }
+    collide(ball) {
+        return pub_collide(ball, this)
+    }
+}
 //ball
 class Ball {
     constructor(img, x, y, speedX, speedY) {
@@ -162,7 +176,7 @@ var __main = function() {
     var g = Game()
     var paddle = new Paddle('paddle.png', 150, 200, 5)
     var ball = new Ball('ball.png', 250, 150, -5, -5)
-
+    var block = new Block('block.png',50,20)
     g.registerAction('a', function() {
         paddle.moveLeft()
     })
@@ -181,10 +195,19 @@ var __main = function() {
                 ball.speedX *= -1
             }
         }
+        if(block.alive && block.collide(ball)['collide']){
+            ball.speedY *=-1
+            block.kill()
+        }
     }
+
     g.draw = function() {
         g.drawImage(paddle)
         g.drawImage(ball, 50, 50)
+            log(block.alive)
+        if(block.alive){
+          g.drawImage(block)
+        }
     }
 }
 __main()
