@@ -4,6 +4,57 @@ imgFromPath = function(src) {
     img.src = src
     return img
 }
+//判断两个物体是否相撞
+pub_collide = function(i, j) {
+    //(x,y) (x,y+h)(x+w,y)(x+w,y+h)
+    //x  j.x j.x+w j.y j.y+h
+    var iheight = i.img.height
+    var iwidth = i.img.width
+    var jheight = j.img.height
+    var jwidth = j.img.width
+    var d1x = i.x
+    var d1y = i.y
+    var d2x = i.x
+    var d2y = i.y + iheight
+    var d3x = i.x + iwidth
+    var d3y = i.y
+    var d4x = i.x + iwidth
+    var d4y = i.y + iheight
+    // alert("!!!d1x " + d1x + " d1y " + d1y + " d4x " + d4x + " d4y " + d4y + " j.x " + j.x + " j.width " + j.width + " j.y " + j.y + " j.height " + j.height)
+    var result = 0
+    if ((d1x < j.x + jwidth && d1x > j.x) && (d1y < j.y + jheight && d1y > j.y)) {
+        result += 1
+    }
+    if ((d2x < j.x + jwidth && d2x > j.x) && (d2y < j.y + jheight && d2y > j.y)) {
+        result += 1
+    }
+    if ((d3x < j.x + jwidth && d3x > j.x) && (d3y < j.y + jheight && d3y > j.y)) {
+        result += 1
+    }
+    if ((d4x < j.x + jwidth && d4x > j.x) && (d4y < j.y + jheight && d4y > j.y)) {
+        result += 1
+    }
+    if (result > 1) {
+        log("相撞")
+        return {
+            "collide": true,
+            "side": false
+        }
+    } else if (result == 1) {
+        //侧面相撞
+        log("侧面相撞")
+        return {
+            "collide": true,
+            "side": true
+        }
+    } else {
+        return {
+            "collide": false,
+            "side": false
+        }
+    }
+    // alert("相撞!!!" + d1x + "d1y" + d1y + "d4x" + d4x + "d4y" + d4y + "j.x" + j.x + "j.width" + j.width + "j.y" + j.y + "j.height" + j.height)
+}
 var Game = function() {
     var g = {
         actions: {},
@@ -52,18 +103,20 @@ class Paddle {
         this.speed = speed
     }
     moveRight() {
-        this.x -= this.speed
-    }
-    moveLeft() {
         this.x += this.speed
     }
+    moveLeft() {
+        this.x -= this.speed
+    }
     collide(ball) {
-        if (ball.y + 50 > this.y) {
-            if (ball.x > this.x && ball.x < this.x + this.img.width) {
-                return true
-            }
-        }
-        return false
+        return pub_collide(ball, this)
+        // if (ball.y + 50 > this.img.y) {
+        //
+        //     if (ball.x > this.img.x && ball.x < this.img.x + this.img.width) {
+        //         return true
+        //     }
+        // }
+        // return false
     }
     getX() {
         return this.x
@@ -85,8 +138,6 @@ class Ball {
 
     move() {
         if (this.fired) {
-            log(this.x)
-            log(this.y)
             if (this.x < 0 || this.x > 400) {
                 this.speedX = -this.speedX
             }
@@ -111,6 +162,7 @@ var __main = function() {
     var g = Game()
     var paddle = new Paddle('paddle.png', 150, 200, 5)
     var ball = new Ball('ball.png', 250, 150, -5, -5)
+
     g.registerAction('a', function() {
         paddle.moveLeft()
     })
@@ -122,8 +174,12 @@ var __main = function() {
     })
     g.update = function() {
         ball.move()
-        if (paddle.collide(ball)) {
+        var result = paddle.collide(ball)
+        if (result["collide"]) {
             ball.speedY *= -1
+            if (result["side"]) {
+                ball.speedX *= -1
+            }
         }
     }
     g.draw = function() {
